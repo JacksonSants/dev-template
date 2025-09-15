@@ -36,4 +36,4 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ inputs.deploy_enabled == true }}
     steps:
-      - run: echo "🚀 Deploying to ${{ inputs.environment }}"
+      - run: echo "Deploying to ${{ inputs.environment }}"
