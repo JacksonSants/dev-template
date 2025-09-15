@@ -1,39 +1,39 @@
-parameters:
-  - name: environment
-    type: string
-  - name: dotnetVersion
-    type: string
-    default: '8.0.x'
-  - name: deployEnabled
-    type: boolean
-    default: false
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+      dotnet_version:
+        required: false
+        default: "8.0.x"
+        type: string
+      deploy_enabled:
+        required: false
+        default: false
+        type: boolean
 
-stages:
-- stage: Build
-  jobs:
-  - job: BuildJob
-    pool:
-      vmImage: 'ubuntu-latest'
+jobs:
+  build:
+    runs-on: ubuntu-latest
     steps:
-    - task: UseDotNet@2
-      inputs:
-        packageType: 'sdk'
-        version: ${{ parameters.dotnetVersion }}
-    - script: dotnet restore ./src
-    - script: dotnet build ./src -c Release --no-restore
+      - uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ inputs.dotnet_version }}
+      - run: dotnet restore ./src
+      - run: dotnet build ./src -c Release --no-restore
 
-- stage: Test
-  dependsOn: Build
-  jobs:
-  - job: TestJob
-    pool:
-      vmImage: 'ubuntu-latest'
+  test:
+    runs-on: ubuntu-latest
+    needs: build
     steps:
-    - script: dotnet test ./tests --no-build
+      - uses: actions/checkout@v4
+      - run: dotnet test ./tests --no-build
 
-- stage: Deploy
-  condition: eq(${{ parameters.deployEnabled }}, true)
-  jobs:
-  - job: DeployJob
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ inputs.deploy_enabled == true }}
     steps:
-    - script: echo "🚀 Deploying to ${{ parameters.environment }}"
+      - run: echo "Deploying to ${{ inputs.environment }}"
