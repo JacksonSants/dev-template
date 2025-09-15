@@ -1,0 +1,39 @@
+parameters:
+  - name: environment
+    type: string
+  - name: dotnetVersion
+    type: string
+    default: '8.0.x'
+  - name: deployEnabled
+    type: boolean
+    default: false
+
+stages:
+- stage: Build
+  jobs:
+  - job: BuildJob
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - task: UseDotNet@2
+      inputs:
+        packageType: 'sdk'
+        version: ${{ parameters.dotnetVersion }}
+    - script: dotnet restore ./src
+    - script: dotnet build ./src -c Release --no-restore
+
+- stage: Test
+  dependsOn: Build
+  jobs:
+  - job: TestJob
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - script: dotnet test ./tests --no-build
+
+- stage: Deploy
+  condition: eq(${{ parameters.deployEnabled }}, true)
+  jobs:
+  - job: DeployJob
+    steps:
+    - script: echo "🚀 Deploying to ${{ parameters.environment }}"
