@@ -22,18 +22,19 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ inputs.dotnet_version }}
-      - run: dotnet restore ./src
-      - run: dotnet build ./src -c Release --no-restore
+      # Restaurar o projeto AuthService
+      - run: dotnet restore ./Eventify.AuthService/Eventify.AuthService.csproj
+      - run: dotnet build ./Eventify.AuthService/Eventify.AuthService.csproj -c Release --no-restore
 
   test:
     runs-on: ubuntu-latest
     needs: build
     steps:
       - uses: actions/checkout@v4
-      - run: dotnet test ./tests --no-build
+      - run: dotnet test ./Test --no-build
 
   deploy:
     runs-on: ubuntu-latest
     if: ${{ inputs.deploy_enabled == true }}
     steps:
-      - run: echo "Deploying to ${{ inputs.environment }}"
+      - run: echo "Deploying AuthService to ${{ inputs.environment }}"
