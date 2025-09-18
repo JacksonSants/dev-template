@@ -16,6 +16,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
     steps:
       - uses: actions/checkout@v4
       - name: Setup .NET
@@ -26,8 +27,17 @@ jobs:
       - run: dotnet restore ./Eventify.AuthService/Eventify.AuthService.csproj
       - run: dotnet build ./Eventify.AuthService/Eventify.AuthService.csproj -c Release --no-restore
 
+      # Firebase secrets
+      - name: Create Firebase Credential File
+        run: |
+          echo '${{ secrets.FIREBASE_CREDENTIAL_JSON }}' > $HOME/firebase-credentials.json
+          echo "FIREBASE_CREDENTIAL_PATH=$HOME/firebase-credentials.json" >> $GITHUB_ENV
+        shell: bash
+
+
   test:
     runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
     needs: build
     steps:
       - uses: actions/checkout@v4
@@ -37,4 +47,4 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ inputs.deploy_enabled == true }}
     steps:
-      - run: echo "Deploying AuthService to ${{ inputs.environment }}"
+      - run: echo "Deploying AuthService to environment ${{ inputs.environment }}"
